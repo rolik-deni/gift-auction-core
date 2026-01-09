@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gift Auction Demo</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; color: #fff; }
+        .container { text-align: center; }
+        button { padding: 10px 20px; font-size: 1.2rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Telegram Gift Auction</h1>
+        <p>Status: <span id="status">Loading...</span></p>
+        <button onclick="checkHealth()">Check Backend API</button>
+    </div>
+
+    <script>
+        async function checkHealth() {
+            try {
+                // Обращаемся к /api/, который nginx прокинет на бек
+                const res = await fetch('/api/'); 
+                const text = await res.text();
+                document.getElementById('status').innerText = 'Online: ' + text;
+                document.getElementById('status').style.color = '#0f0';
+            } catch (e) {
+                document.getElementById('status').innerText = 'Offline / Error';
+                document.getElementById('status').style.color = '#f00';
+            }
+        }
+    </script>
+</body>
+</html>

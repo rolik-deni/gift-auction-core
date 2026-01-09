@@ -1,0 +1,67 @@
+volumes:
+  mongo_data:
+  redis_data:
+
+services:
+  # --- Backend ---
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: auction-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/auction_db?replicaSet=rs0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./apps/backend:/usr/src/app
+      - /usr/src/app/node_modules
+
+  # --- Frontend ---
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: auction-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # --- MongoDB ---
+  mongo:
+    image: mongo:6.0
+    container_name: auction-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: echo "try { rs.status() } catch (e) { rs.initiate() }" | mongosh --port 27017 --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongo_data:/data/db
+
+  # --- Redis ---
+  redis:
+    image: redis:7-alpine
+    container_name: auction-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
