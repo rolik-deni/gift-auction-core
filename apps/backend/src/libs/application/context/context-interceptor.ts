@@ -24,7 +24,7 @@ export class ContextInterceptor implements NestInterceptor {
 
         // 2. Теперь доступ к body безопасен (если используются типы Express)
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const bodyRequestId = request.body?.requestId
 
         const requestId =

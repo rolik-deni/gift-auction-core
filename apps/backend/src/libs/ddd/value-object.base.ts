@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ArgumentNotProvidedException } from '../exceptions'
 import { Guard } from '../guard'
 import { convertPropsToObject } from '../utils'
