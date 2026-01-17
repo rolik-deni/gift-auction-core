@@ -1,7 +1,7 @@
 import { Mapper } from '@libs/ddd'
 import { Injectable } from '@nestjs/common'
 
-import { UserPersistence, userSchema } from './database/user.repository'
+import { UserPersistence, userSchema } from './database'
 import { UserEntity } from './domain/user.entity'
 
 @Injectable()

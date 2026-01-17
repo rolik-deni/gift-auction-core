@@ -9,12 +9,14 @@ import { ContextInterceptor } from './libs/application/context'
 import { AppController } from './modules/app/app.controller'
 import { AppService } from './modules/app/app.service'
 import { UserModule } from './modules/users/user.module'
+import { WalletModule } from './modules/wallets/wallet.module'
 @Module({
     imports: [
         EventEmitterModule.forRoot(),
-        RequestContextModule,
         MongooseModule.forRootAsync({ useFactory: mongooseModuleOptions }),
+        RequestContextModule,
         UserModule,
+        WalletModule,
     ],
     controllers: [AppController],
     providers: [

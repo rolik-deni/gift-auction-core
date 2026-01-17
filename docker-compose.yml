@@ -48,7 +48,17 @@ services:
       - "27017:27017"
     command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
-      test: echo "try { rs.status() } catch (e) { rs.initiate() }" | mongosh --port 27017 --quiet
+      test: >
+        mongosh --port 27017 --quiet --eval '
+        const host = "mongo:27017";
+        const cfg = { _id: "rs0", members: [{ _id: 0, host }] };
+        function ok() { try { rs.status(); return true; } catch (e) { return false; } }
+        if (!ok()) {
+          try { rs.initiate(cfg); } catch (e) {}
+          try { rs.reconfig(cfg, { force: true }); } catch (e) {}
+        }
+        if (!ok()) { quit(1); }
+        '
       interval: 10s
       timeout: 5s
       retries: 5

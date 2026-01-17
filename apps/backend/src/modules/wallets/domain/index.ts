@@ -1,0 +1,5 @@
+export * from './events'
+export * from './value-objects/money.vo'
+export * from './wallet.entity'
+export * from './wallet.errors'
+export * from './wallet.types'

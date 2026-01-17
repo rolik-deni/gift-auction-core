@@ -3,21 +3,11 @@ import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { z } from 'zod'
 
 import { UserEntity } from '../domain/user.entity'
 import { UserMapper } from '../user.mapper'
 import { UserRepositoryPort } from './user.repository.port'
 import { UserDocument, UserMongo } from './user.schema'
-
-export const userSchema = z.object({
-    _id: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    name: z.string(),
-})
-
-export type UserPersistence = z.TypeOf<typeof userSchema>
 
 @Injectable()
 export class UserRepository implements UserRepositoryPort {

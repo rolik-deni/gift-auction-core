@@ -1,5 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
+import z from 'zod'
+
+export const userSchema = z.object({
+    _id: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    name: z.string(),
+})
+
+export type UserPersistence = z.TypeOf<typeof userSchema>
 
 @Schema({ collection: 'users' })
 export class UserMongo {
