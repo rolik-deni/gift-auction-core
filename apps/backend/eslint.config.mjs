@@ -42,8 +42,8 @@ export default tseslint.config(
             'no-await-in-loop': 'off',
             'object-shorthand': ['error', 'always'],
             'no-restricted-syntax': 'off',
-            
-            '@typescript-eslint/no-unused-vars':'error',
+
+            '@typescript-eslint/no-unused-vars': 'error',
             '@typescript-eslint/no-unsafe-call': 'off',
             '@typescript-eslint/no-unsafe-assignment': 'off',
             '@typescript-eslint/no-useless-constructor': 'off',

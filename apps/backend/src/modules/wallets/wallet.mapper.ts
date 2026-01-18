@@ -1,9 +1,9 @@
 import { Mapper } from '@libs/ddd'
 import { Injectable } from '@nestjs/common'
 
-import { WalletPersistence, walletSchema } from './database/wallet.repository'
-import { Money } from './domain/value-objects/money.vo'
-import { WalletEntity } from './domain/wallet.entity'
+import { WalletPersistence, walletSchema } from './database'
+import { Money, WalletEntity } from './domain/'
+import { WalletResponseDto } from './dtos'
 
 @Injectable()
 export class WalletMapper implements Mapper<WalletEntity, WalletPersistence> {
@@ -13,9 +13,8 @@ export class WalletMapper implements Mapper<WalletEntity, WalletPersistence> {
             _id: props.id,
             userId: props.userId,
             balanceAmount: props.balance.amount.toFixed(),
-            balanceCurrency: props.balance.currency,
+            currency: props.balance.currency,
             lockedAmount: props.locked.amount.toFixed(),
-            lockedCurrency: props.locked.currency,
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
         }
@@ -30,16 +29,24 @@ export class WalletMapper implements Mapper<WalletEntity, WalletPersistence> {
             updatedAt: record.updatedAt,
             props: {
                 userId: record.userId,
-                balance: Money.create(
-                    record.balanceAmount,
-                    record.balanceCurrency,
-                ),
-                locked: Money.create(
-                    record.lockedAmount,
-                    record.lockedCurrency,
-                ),
+                balance: Money.create(record.balanceAmount, record.currency),
+                locked: Money.create(record.lockedAmount, record.currency),
             },
         })
         return entity
+    }
+
+    toResponse(entity: WalletEntity): WalletResponseDto {
+        const props = entity.getProps()
+        const response = new WalletResponseDto({
+            id: props.id,
+            createdAt: props.createdAt,
+            updatedAt: props.updatedAt,
+            userId: props.userId,
+            balanceAmount: props.balance.amount.toFixed(),
+            lockedAmount: props.balance.amount.toFixed(),
+            currency: props.balance.currency,
+        })
+        return response
     }
 }

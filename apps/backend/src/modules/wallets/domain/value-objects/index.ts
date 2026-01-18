@@ -1,1 +1,1 @@
-export * from './money.vo'
+export * from './money.value-object'

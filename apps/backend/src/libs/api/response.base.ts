@@ -8,11 +8,6 @@ export interface BaseResponseProps {
     updatedAt: Date
 }
 
-/**
- * Most of our response objects will have properties like
- * id, createdAt and updatedAt so we can move them to a
- * separate class and extend it to avoid duplication.
- */
 export class ResponseBase extends IdResponse {
     constructor(props: BaseResponseProps) {
         super(props.id)

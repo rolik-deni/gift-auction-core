@@ -4,28 +4,14 @@ import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { z } from 'zod'
 
-import { WalletEntity } from '../domain/wallet.entity'
+import { WalletEntity } from '../domain/'
 import { WalletMapper } from '../wallet.mapper'
 import {
     WalletFindOneQuery,
     WalletRepositoryPort,
 } from './wallet.repository.port'
 import { WalletDocument, WalletMongo } from './wallet.schema'
-
-export const walletSchema = z.object({
-    _id: z.string(),
-    userId: z.string(),
-    balanceAmount: z.string(),
-    balanceCurrency: z.string(),
-    lockedAmount: z.string(),
-    lockedCurrency: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-})
-
-export type WalletPersistence = z.TypeOf<typeof walletSchema>
 
 @Injectable()
 export class WalletRepository implements WalletRepositoryPort {

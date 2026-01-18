@@ -4,20 +4,20 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
 import { ApiOperation, ApiResponse } from '@nestjs/swagger'
 
-import { DepositFundsCommand } from './deposit-funds.command'
-import { DepositFundsRequestDto } from './deposit-funds.request.dto'
+import { LockFundsCommand } from './lock-funds.command'
+import { LockFundsRequestDto } from './lock-funds.request.dto'
 
 @Controller('wallets')
-export class DepositFundsHttpController {
+export class LockFundsHttpController {
     constructor(private readonly _commandBus: CommandBus) {}
 
-    @ApiOperation({ summary: 'Deposit funds' })
+    @ApiOperation({ summary: 'Lock wallet funds' })
     @ApiResponse({ status: 200, type: IdResponse })
-    @Post('deposit')
-    async deposit(@Body() body: DepositFundsRequestDto): Promise<IdResponse> {
-        const command = new DepositFundsCommand(body)
+    @Post('lock')
+    async lock(@Body() body: LockFundsRequestDto): Promise<IdResponse> {
+        const command = new LockFundsCommand(body)
         const result = await this._commandBus.execute<
-            DepositFundsCommand,
+            LockFundsCommand,
             AggregateID
         >(command)
         return new IdResponse(result)

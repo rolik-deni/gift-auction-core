@@ -1,2 +1,5 @@
+export * from './charge-locked'
 export * from './create-wallet'
 export * from './deposit-funds'
+export * from './lock-funds'
+export * from './unlock-funds'

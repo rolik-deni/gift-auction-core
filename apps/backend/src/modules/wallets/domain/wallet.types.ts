@@ -1,4 +1,4 @@
-import { Money } from './value-objects/money.vo'
+import { Money } from './value-objects/money.value-object'
 
 export interface CreateWalletProps {
     userId: string

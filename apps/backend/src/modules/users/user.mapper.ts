@@ -18,8 +18,6 @@ export class UserMapper implements Mapper<UserEntity, UserPersistence> {
     }
 
     toDomain(record: UserPersistence): UserEntity {
-        userSchema.parse(record)
-
         const entity = new UserEntity({
             id: record._id,
             createdAt: record.createdAt,

@@ -3,13 +3,13 @@ import { Inject } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 
 import type { WalletRepositoryPort } from '../../database'
-import { Money } from '../../domain/value-objects/money.value-object'
+import { Money } from '../../domain'
 import { WALLET_REPOSITORY } from '../../wallet.di-tokens'
-import { DepositFundsCommand } from './deposit-funds.command'
+import { LockFundsCommand } from './lock-funds.command'
 
-@CommandHandler(DepositFundsCommand)
-export class DepositFundsService implements ICommandHandler<
-    DepositFundsCommand,
+@CommandHandler(LockFundsCommand)
+export class LockFundsService implements ICommandHandler<
+    LockFundsCommand,
     AggregateID
 > {
     constructor(
@@ -17,13 +17,15 @@ export class DepositFundsService implements ICommandHandler<
         private readonly _walletRepository: WalletRepositoryPort,
     ) {}
 
-    async execute(command: DepositFundsCommand): Promise<AggregateID> {
+    async execute(command: LockFundsCommand): Promise<AggregateID> {
         const wallet = await this._walletRepository.findOne(
             { id: command.walletId },
             true,
         )
-        wallet.deposit(Money.create(command.amount, command.currency))
+
+        wallet.lockFunds(Money.create(command.amount))
         await this._walletRepository.save(wallet)
+
         return wallet.id
     }
 }

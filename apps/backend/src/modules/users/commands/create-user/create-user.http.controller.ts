@@ -3,7 +3,6 @@ import { AggregateID } from '@libs/ddd'
 import { Body, Controller, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
 import { ApiOperation, ApiResponse } from '@nestjs/swagger'
-import { Ok } from 'oxide.ts'
 
 import { CreateUserCommand } from './create-user.command'
 import { CreateUserRequestDto } from './create-user.request.dto'
@@ -19,9 +18,8 @@ export class CreateUserHttpController {
         const command = new CreateUserCommand(body)
         const result = await this._commandBus.execute<
             CreateUserCommand,
-            Ok<AggregateID>
+            AggregateID
         >(command)
-
-        return new IdResponse(result.unwrap())
+        return new IdResponse(result)
     }
 }

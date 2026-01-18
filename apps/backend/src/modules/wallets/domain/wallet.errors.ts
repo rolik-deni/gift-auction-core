@@ -1,4 +1,14 @@
-import { ExceptionBase } from '@libs/exceptions'
+import { ExceptionBase, NOT_FOUND } from '@libs/exceptions'
+
+export class WalletNotFoundException extends ExceptionBase {
+    static readonly message = 'Wallet not found'
+
+    readonly code = NOT_FOUND
+
+    constructor(cause?: Error, metadata?: unknown) {
+        super(WalletNotFoundException.message, cause, metadata)
+    }
+}
 
 export class WalletAlreadyExistsError extends ExceptionBase {
     static readonly message = 'Wallet already exists'
@@ -16,6 +26,6 @@ export class WalletInsufficientFundsError extends ExceptionBase {
     readonly code = 'WALLET.INSUFFICIENT_FUNDS'
 
     constructor(cause?: Error, metadata?: unknown) {
-        super(WalletAlreadyExistsError.message, cause, metadata)
+        super(WalletInsufficientFundsError.message, cause, metadata)
     }
 }
