@@ -19,8 +19,7 @@ export class WalletMapper implements Mapper<WalletEntity, WalletPersistence> {
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
         }
-        walletSchema.parse(record)
-        return record
+        return walletSchema.parse(record)
     }
 
     toDomain(record: WalletPersistence): WalletEntity {

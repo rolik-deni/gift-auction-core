@@ -15,6 +15,6 @@ export class CreateWalletWhenUserIsCreatedDomainEventHandler {
     @OnEvent(UserCreatedDomainEvent.name, { async: true, promisify: true })
     async handle(event: UserCreatedDomainEvent): Promise<void> {
         const wallet = WalletEntity.create({ userId: event.aggregateId })
-        await this._walletRepository.create(wallet)
+        await this._walletRepository.save(wallet)
     }
 }

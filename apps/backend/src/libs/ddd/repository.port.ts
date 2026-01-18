@@ -28,8 +28,17 @@ export type PaginatedQueryParams = {
     orderBy: OrderBy
 }
 
-export interface RepositoryPort<Entity> {
-    create(entity: Entity | Entity[]): Promise<void>
+export interface RepositoryPort<Entity, FindOneQuery = { id?: string }> {
+    save(entity: Entity | Entity[]): Promise<void>
+    findOne(query: FindOneQuery, throwError: true): Promise<Entity>
+    findOne(
+        query: FindOneQuery,
+        throwError?: false,
+    ): Promise<Entity | undefined>
+    findOne(
+        query: FindOneQuery,
+        throwError?: boolean,
+    ): Promise<Entity | undefined>
     // findOneById(id: string): Promise<Option<Entity>>
     // findAll(): Promise<Entity[]>
     // findAllPaginated(params: PaginatedQueryParams): Promise<Paginated<Entity>>

@@ -22,7 +22,7 @@ export class CreateUserService implements ICommandHandler<CreateUserCommand> {
             name: command.name ?? faker.person.fullName(),
         })
 
-        await this.userRepository.create(user)
+        await this.userRepository.save(user)
         return Ok(user.id)
     }
 }

@@ -1,5 +1,5 @@
 import { AggregateID } from '@libs/ddd'
-import { ConflictException, Inject } from '@nestjs/common'
+import { Inject } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 import { Err, Ok, Result } from 'oxide.ts'
 
@@ -18,16 +18,16 @@ export class CreateWalletService implements ICommandHandler<CreateWalletCommand>
     async execute(
         command: CreateWalletCommand,
     ): Promise<Result<AggregateID, WalletAlreadyExistsError>> {
-        const wallet = WalletEntity.create({ userId: command.userId })
-
-        try {
-            await this._walletRepository.create(wallet)
-            return Ok(wallet.id)
-        } catch (error) {
-            if (error instanceof ConflictException) {
-                return Err(new WalletAlreadyExistsError(error))
-            }
-            throw error
+        const existingWallet = await this._walletRepository.findOne(
+            { id: command.userId },
+            false,
+        )
+        if (existingWallet) {
+            return Err(new WalletAlreadyExistsError())
         }
+
+        const wallet = WalletEntity.create({ userId: command.userId })
+        await this._walletRepository.save(wallet)
+        return Ok(wallet.id)
     }
 }

@@ -1,7 +1,4 @@
-import {
-    ArgumentNotProvidedException,
-    ConflictException,
-} from '@libs/exceptions'
+import { ArgumentNotProvidedException } from '@libs/exceptions'
 import { getLogContext } from '@libs/utils/log-context'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -30,13 +27,6 @@ export const walletSchema = z.object({
 
 export type WalletPersistence = z.TypeOf<typeof walletSchema>
 
-const isDuplicateKeyError = (error: unknown): boolean => {
-    if (!error || typeof error !== 'object') {
-        return false
-    }
-    return (error as { code?: number }).code === 11000
-}
-
 @Injectable()
 export class WalletRepository implements WalletRepositoryPort {
     constructor(
@@ -52,28 +42,39 @@ export class WalletRepository implements WalletRepositoryPort {
         WalletRepository.name,
     )
 
-    async create(entity: WalletEntity | WalletEntity[]): Promise<void> {
+    async save(entity: WalletEntity | WalletEntity[]): Promise<void> {
         const entities = Array.isArray(entity) ? entity : [entity]
         entities.forEach((item) => item.validate())
 
         const records = entities.map((item) => this._mapper.toPersistence(item))
+        const updatedAt = new Date()
+        records.forEach((record) => {
+            record.updatedAt = updatedAt
+        })
 
         this._logger.debug(
-            `Writing ${entities.length} entities to "wallets" collection`,
-            this._getLogContext(this.create.name),
+            `Saving ${entities.length} entities to "wallets" collection`,
+            this._getLogContext(this.save.name),
         )
 
-        try {
-            if (records.length === 1) {
-                await this._walletModel.create(records[0])
-            } else {
-                await this._walletModel.insertMany(records)
-            }
-        } catch (error) {
-            if (isDuplicateKeyError(error)) {
-                throw new ConflictException('Wallet already exists')
-            }
-            throw error
+        if (records.length === 1) {
+            await this._walletModel
+                .updateOne(
+                    { _id: records[0]._id },
+                    { $set: records[0] },
+                    { upsert: true },
+                )
+                .exec()
+        } else {
+            await this._walletModel.bulkWrite(
+                records.map((record) => ({
+                    updateOne: {
+                        filter: { _id: record._id },
+                        update: { $set: record },
+                        upsert: true,
+                    },
+                })),
+            )
         }
 
         await Promise.all(
@@ -81,15 +82,6 @@ export class WalletRepository implements WalletRepositoryPort {
                 item.publishEvents(this._logger, this._eventEmitter),
             ),
         )
-    }
-
-    async save(entity: WalletEntity): Promise<void> {
-        const record = this._mapper.toPersistence(entity)
-        record.updatedAt = new Date()
-
-        await this._walletModel
-            .updateOne({ _id: record._id }, { $set: record })
-            .exec()
     }
 
     async findOne(

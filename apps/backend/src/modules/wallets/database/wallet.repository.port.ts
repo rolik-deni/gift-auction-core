@@ -7,15 +7,7 @@ export type WalletFindOneQuery = {
     userId?: string
 }
 
-export interface WalletRepositoryPort extends RepositoryPort<WalletEntity> {
-    findOne(query: WalletFindOneQuery, throwError: true): Promise<WalletEntity>
-    findOne(
-        query: WalletFindOneQuery,
-        throwError?: false,
-    ): Promise<WalletEntity | undefined>
-    findOne(
-        query: WalletFindOneQuery,
-        throwError?: boolean,
-    ): Promise<WalletEntity | undefined>
-    save(entity: WalletEntity): Promise<void>
-}
+export type WalletRepositoryPort = RepositoryPort<
+    WalletEntity,
+    WalletFindOneQuery
+>

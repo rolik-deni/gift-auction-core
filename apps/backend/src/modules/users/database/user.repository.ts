@@ -1,3 +1,4 @@
+import { ArgumentNotProvidedException } from '@libs/exceptions'
 import { getLogContext } from '@libs/utils/log-context'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -6,8 +7,8 @@ import { Model } from 'mongoose'
 
 import { UserEntity } from '../domain/user.entity'
 import { UserMapper } from '../user.mapper'
-import { UserRepositoryPort } from './user.repository.port'
-import { UserDocument, UserMongo } from './user.schema'
+import { UserFindOneQuery, UserRepositoryPort } from './user.repository.port'
+import { UserDocument, UserMongo, userSchema } from './user.schema'
 
 @Injectable()
 export class UserRepository implements UserRepositoryPort {
@@ -24,21 +25,39 @@ export class UserRepository implements UserRepositoryPort {
         UserRepository.name,
     )
 
-    async create(entity: UserEntity | UserEntity[]): Promise<void> {
+    async save(entity: UserEntity | UserEntity[]): Promise<void> {
         const entities = Array.isArray(entity) ? entity : [entity]
         entities.forEach((item) => item.validate())
 
         const records = entities.map((item) => this._mapper.toPersistence(item))
+        const updatedAt = new Date()
+        records.forEach((record) => {
+            record.updatedAt = updatedAt
+        })
 
         this._logger.debug(
-            `Writing ${entities.length} entities to "users" collection`,
-            this._getLogContext(this.create.name),
+            `Saving ${entities.length} entities to "users" collection`,
+            this._getLogContext(this.save.name),
         )
 
         if (records.length === 1) {
-            await this._userModel.create(records[0])
+            await this._userModel
+                .updateOne(
+                    { _id: records[0]._id },
+                    { $set: records[0] },
+                    { upsert: true },
+                )
+                .exec()
         } else {
-            await this._userModel.insertMany(records)
+            await this._userModel.bulkWrite(
+                records.map((record) => ({
+                    updateOne: {
+                        filter: { _id: record._id },
+                        update: { $set: record },
+                        upsert: true,
+                    },
+                })),
+            )
         }
 
         await Promise.all(
@@ -46,5 +65,37 @@ export class UserRepository implements UserRepositoryPort {
                 item.publishEvents(this._logger, this._eventEmitter),
             ),
         )
+    }
+
+    async findOne(
+        query: UserFindOneQuery,
+        throwError: true,
+    ): Promise<UserEntity>
+    async findOne(
+        query: UserFindOneQuery,
+        throwError?: false,
+    ): Promise<UserEntity | undefined>
+    async findOne(
+        query: UserFindOneQuery,
+        throwError?: boolean,
+    ): Promise<UserEntity | undefined> {
+        if (!query.id) {
+            throw new ArgumentNotProvidedException('Query should contain id')
+        }
+
+        const record =
+            (await this._userModel.findOne({ _id: query.id }).exec()) ??
+            undefined
+
+        if (!record && throwError) {
+            throw new ArgumentNotProvidedException('User not found')
+        }
+
+        if (!record) {
+            return record
+        }
+
+        const parsed = userSchema.parse(record.toObject())
+        return this._mapper.toDomain(parsed)
     }
 }
