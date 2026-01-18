@@ -1,6 +1,5 @@
 import { AggregateID, AggregateRoot, CreateEntityProps } from '@libs/ddd'
 import { ArgumentNotProvidedException } from '@libs/exceptions'
-import { randomUUID } from 'crypto'
 
 import { WalletCreatedDomainEvent } from './events'
 import { Money } from './value-objects'
@@ -16,7 +15,7 @@ export class WalletEntity extends AggregateRoot<WalletProps> {
     }
 
     static create(create: CreateWalletProps): WalletEntity {
-        const id = randomUUID()
+        const id = create.userId
         const props: WalletProps = {
             ...create,
             balance: Money.create(0),

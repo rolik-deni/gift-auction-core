@@ -10,10 +10,7 @@ import { USER_REPOSITORY } from '../../user.di-tokens'
 import { CreateUserCommand } from './create-user.command'
 
 @CommandHandler(CreateUserCommand)
-export class CreateUserService implements ICommandHandler<
-    CreateUserCommand,
-    Ok<AggregateID>
-> {
+export class CreateUserService implements ICommandHandler<CreateUserCommand> {
     constructor(
         @Inject(USER_REPOSITORY)
         protected readonly userRepository: UserRepositoryPort,
@@ -26,7 +23,6 @@ export class CreateUserService implements ICommandHandler<
         })
 
         await this.userRepository.create(user)
-
         return Ok(user.id)
     }
 }

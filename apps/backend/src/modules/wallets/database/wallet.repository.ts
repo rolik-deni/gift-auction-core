@@ -1,4 +1,7 @@
-import { ArgumentNotProvidedException } from '@libs/exceptions'
+import {
+    ArgumentNotProvidedException,
+    ConflictException,
+} from '@libs/exceptions'
 import { getLogContext } from '@libs/utils/log-context'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -27,6 +30,13 @@ export const walletSchema = z.object({
 
 export type WalletPersistence = z.TypeOf<typeof walletSchema>
 
+const isDuplicateKeyError = (error: unknown): boolean => {
+    if (!error || typeof error !== 'object') {
+        return false
+    }
+    return (error as { code?: number }).code === 11000
+}
+
 @Injectable()
 export class WalletRepository implements WalletRepositoryPort {
     constructor(
@@ -53,10 +63,17 @@ export class WalletRepository implements WalletRepositoryPort {
             this._getLogContext(this.create.name),
         )
 
-        if (records.length === 1) {
-            await this._walletModel.create(records[0])
-        } else {
-            await this._walletModel.insertMany(records)
+        try {
+            if (records.length === 1) {
+                await this._walletModel.create(records[0])
+            } else {
+                await this._walletModel.insertMany(records)
+            }
+        } catch (error) {
+            if (isDuplicateKeyError(error)) {
+                throw new ConflictException('Wallet already exists')
+            }
+            throw error
         }
 
         await Promise.all(
