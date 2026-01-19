@@ -24,7 +24,7 @@ export class WalletMongo {
     @Prop({ type: Date, required: true })
     updatedAt: Date
 
-    @Prop({ type: String, required: true })
+    @Prop({ type: String, required: true, index: true })
     userId: string
 
     @Prop({ type: String, required: true })

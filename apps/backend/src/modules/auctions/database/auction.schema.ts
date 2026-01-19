@@ -38,7 +38,7 @@ export class AuctionMongo {
     @Prop({ type: String, required: true })
     title: string
 
-    @Prop({ type: String, required: true, enum: AuctionStatus })
+    @Prop({ type: String, required: true, enum: AuctionStatus, index: true })
     status: AuctionStatus
 
     @Prop({ type: Number, required: true })
@@ -56,7 +56,7 @@ export class AuctionMongo {
     @Prop({ type: Number, required: true })
     currentRoundNumber: number
 
-    @Prop({ type: Date, required: true })
+    @Prop({ type: Date, required: true, index: true })
     currentRoundEndsAt: Date | null
 
     @Prop({

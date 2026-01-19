@@ -10,4 +10,6 @@ export type AuctionFindOneQuery = {
 export type AuctionRepositoryPort = RepositoryPort<
     AuctionEntity,
     AuctionFindOneQuery
->
+> & {
+    extendRound(auctionId: string, newEndsAt: Date): Promise<void>
+}

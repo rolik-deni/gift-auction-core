@@ -102,4 +102,13 @@ export class AuctionRepository implements AuctionRepositoryPort {
 
         return record ? this._mapper.toDomain(record.toObject()) : record
     }
+
+    async extendRound(auctionId: string, newEndsAt: Date): Promise<void> {
+        await this._auctionModel
+            .updateOne(
+                { _id: auctionId, currentRoundEndsAt: { $lt: newEndsAt } },
+                { $set: { currentRoundEndsAt: newEndsAt } },
+            )
+            .exec()
+    }
 }
