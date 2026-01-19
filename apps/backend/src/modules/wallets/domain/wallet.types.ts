@@ -1,4 +1,4 @@
-import { Money } from './value-objects/money.value-object'
+import { Money } from '@libs/ddd'
 
 export interface CreateWalletProps {
     userId: string

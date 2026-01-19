@@ -1,9 +1,8 @@
-import { AggregateID } from '@libs/ddd'
+import { AggregateID, Money } from '@libs/ddd'
 import { Inject } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 
 import type { WalletRepositoryPort } from '../../database'
-import { Money } from '../../domain/value-objects/money.value-object'
 import { WALLET_REPOSITORY } from '../../wallet.di-tokens'
 import { DepositFundsCommand } from './deposit-funds.command'
 

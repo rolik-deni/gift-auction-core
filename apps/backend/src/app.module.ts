@@ -6,10 +6,12 @@ import { RequestContextModule } from 'nestjs-request-context'
 
 import { mongooseModuleOptions } from './configs'
 import { ContextInterceptor, ExceptionInterceptor } from './libs/application'
+import { AuctionModule } from './modules/auctions/auction.module'
 import { UserModule } from './modules/users/user.module'
 import { WalletModule } from './modules/wallets/wallet.module'
 @Module({
     imports: [
+        AuctionModule,
         EventEmitterModule.forRoot(),
         MongooseModule.forRootAsync({ useFactory: mongooseModuleOptions }),
         RequestContextModule,

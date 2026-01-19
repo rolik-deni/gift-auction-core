@@ -1,0 +1,1 @@
+export const AUCTION_REPOSITORY = Symbol('AUCTION_REPOSITORY')

@@ -1,8 +1,7 @@
-import { AggregateID, AggregateRoot, CreateEntityProps } from '@libs/ddd'
+import { AggregateID, AggregateRoot, CreateEntityProps, Money } from '@libs/ddd'
 import { ArgumentNotProvidedException } from '@libs/exceptions'
 
 import { WalletCreatedDomainEvent } from './events'
-import { Money } from './value-objects'
 import { WalletInsufficientFundsError } from './wallet.errors'
 import { CreateWalletProps, WalletProps } from './wallet.types'
 

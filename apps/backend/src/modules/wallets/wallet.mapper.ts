@@ -1,8 +1,8 @@
-import { Mapper } from '@libs/ddd'
+import { Mapper, Money } from '@libs/ddd'
 import { Injectable } from '@nestjs/common'
 
 import { WalletPersistence, walletSchema } from './database'
-import { Money, WalletEntity } from './domain/'
+import { WalletEntity } from './domain'
 import { WalletResponseDto } from './dtos'
 
 @Injectable()

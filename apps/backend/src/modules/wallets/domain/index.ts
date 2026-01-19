@@ -1,5 +1,4 @@
 export * from './events'
-export * from './value-objects'
 export * from './wallet.entity'
 export * from './wallet.errors'
 export * from './wallet.types'
