@@ -93,6 +93,9 @@ export class AuctionRepository implements AuctionRepositoryPort {
                 .findOne({
                     ...(query.id && { _id: query.id }),
                     ...(query.status && { status: query.status }),
+                    ...(query.currentRoundNumber && {
+                        currentRoundNumber: query.currentRoundNumber,
+                    }),
                 })
                 .exec()) ?? undefined
 
@@ -103,12 +106,17 @@ export class AuctionRepository implements AuctionRepositoryPort {
         return record ? this._mapper.toDomain(record.toObject()) : record
     }
 
-    async extendRound(auctionId: string, newEndsAt: Date): Promise<void> {
-        await this._auctionModel
+    async extendRound(
+        auctionId: string,
+        newEndsAt: Date,
+    ): Promise<string | null> {
+        const result = await this._auctionModel
             .updateOne(
                 { _id: auctionId, currentRoundEndsAt: { $lt: newEndsAt } },
                 { $set: { currentRoundEndsAt: newEndsAt } },
             )
             .exec()
+
+        return result.modifiedCount > 0 ? auctionId : null
     }
 }

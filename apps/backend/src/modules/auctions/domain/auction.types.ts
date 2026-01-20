@@ -4,7 +4,6 @@ export enum AuctionStatus {
     CREATED = 'CREATED',
     ACTIVE = 'ACTIVE',
     COMPLETED = 'COMPLETED',
-    CANCELLED = 'CANCELLED',
 }
 
 export interface CreateAuctionProps {

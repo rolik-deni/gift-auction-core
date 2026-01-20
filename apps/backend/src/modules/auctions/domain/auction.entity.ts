@@ -1,4 +1,4 @@
-import { AggregateID, AggregateRoot, CreateEntityProps } from '@libs/ddd'
+import { AggregateID, AggregateRoot, CreateEntityProps, Money } from '@libs/ddd'
 import {
     ArgumentInvalidException,
     ArgumentOutOfRangeException,
@@ -34,6 +34,18 @@ export class AuctionEntity extends AggregateRoot<AuctionProps> {
 
     get currentRoundNumber(): number {
         return this.props.currentRoundNumber
+    }
+
+    get itemsPerRound(): number {
+        return this.props.itemsPerRound
+    }
+
+    get entryPrice(): Money {
+        return this.props.entryPrice
+    }
+
+    get roundsTotal(): number {
+        return this.props.roundsTotal
     }
 
     static create(props: CreateAuctionProps): AuctionEntity {

@@ -4,10 +4,10 @@ import { Inject } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 import { BigNumber } from 'bignumber.js'
 
-import { AUCTION_REPOSITORY, PAYMENT_PORT } from '../../auction.di-tokens'
+import { AUCTION_REPOSITORY, WALLET_PORT } from '../../auction.di-tokens'
 import type { AuctionRepositoryPort } from '../../database'
 import { AuctionStatus } from '../../domain'
-import type { PaymentPort } from '../../domain/ports/payment.port'
+import type { WalletPort } from '../../domain/ports/wallet.port'
 import { BiddingRepository } from '../../infrastructure'
 import { PlaceBidCommand } from './place-bid.command'
 
@@ -20,8 +20,8 @@ export class PlaceBidService implements ICommandHandler<
         @Inject(AUCTION_REPOSITORY)
         private readonly _auctionRepository: AuctionRepositoryPort,
         private readonly _biddingRepository: BiddingRepository,
-        @Inject(PAYMENT_PORT)
-        private readonly _paymentPort: PaymentPort,
+        @Inject(WALLET_PORT)
+        private readonly _walletPort: WalletPort,
     ) {}
 
     async execute(command: PlaceBidCommand): Promise<AggregateID> {
@@ -36,13 +36,12 @@ export class PlaceBidService implements ICommandHandler<
 
         const endsAt = auction.currentRoundEndsAt
         if (endsAt) {
-            auction.extendRound(300)
-            const newEndsAt = auction.currentRoundEndsAt
-
-            await this._auctionRepository.extendRound(
-                command.auctionId,
-                newEndsAt,
-            )
+            const msLeft = endsAt.getTime() - Date.now()
+            if (msLeft < 30_000) {
+                auction.extendRound(30)
+                const newEndsAt = auction.currentRoundEndsAt
+                await this._auctionRepository.extendRound(auction.id, newEndsAt)
+            }
         }
 
         const existingBid = await this._biddingRepository.getUserBid(
@@ -55,14 +54,19 @@ export class PlaceBidService implements ICommandHandler<
 
         const newAmount = new BigNumber(command.amount)
 
-        if (
+        const isInvalidBidAmount =
             !newAmount.isFinite() ||
             newAmount.isNaN() ||
             newAmount.isLessThanOrEqualTo(0)
-        ) {
+
+        if (isInvalidBidAmount) {
             throw new ArgumentInvalidException(
                 'Bid amount must be a positive number',
             )
+        }
+
+        if (!existingBid && newAmount.isLessThan(auction.entryPrice.amount)) {
+            throw new ArgumentInvalidException('Bid is below the entry price')
         }
 
         if (newAmount.isLessThanOrEqualTo(oldAmount)) {
@@ -71,7 +75,7 @@ export class PlaceBidService implements ICommandHandler<
 
         const delta = newAmount.minus(oldAmount)
         if (delta.isGreaterThan(0)) {
-            await this._paymentPort.lockFunds(
+            await this._walletPort.lockFunds(
                 command.userId,
                 Money.create(delta, auction.getProps().entryPrice.currency),
             )

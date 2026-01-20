@@ -10,7 +10,11 @@ export class AppRequestContext extends RequestContext {
 
 export class RequestContextService {
     static getContext(): AppRequestContext {
-        return <AppRequestContext>RequestContext.currentContext.req
+        const ctx = RequestContext.currentContext
+        if (!ctx?.req) {
+            return { requestId: crypto.randomUUID() } as AppRequestContext
+        }
+        return ctx.req as AppRequestContext
     }
 
     static setRequestId(id: string): void {

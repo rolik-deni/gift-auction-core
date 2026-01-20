@@ -1,2 +1,5 @@
+export * from './auction.processor'
+export * from './auction-scheduler.adapter'
+export * from './bidder.interface'
 export * from './bidding.repository'
-export * from './payment.adapter'
+export * from './wallet.adapter'

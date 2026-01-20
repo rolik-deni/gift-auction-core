@@ -22,15 +22,26 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@src/*": ["src/*"],
-      "@modules/*": ["src/modules/*"],
-      "@configs/*": ["src/configs/*"],
-      "@libs/*": ["src/libs/*"],
-      "@tests/*": ["tests/*"]
+      "@src/*": [
+        "src/*"
+      ],
+      "@modules/*": [
+        "src/modules/*"
+      ],
+      "@configs/*": [
+        "src/configs/*"
+      ],
+      "@libs/*": [
+        "src/libs/*"
+      ],
+      "@tests/*": [
+        "tests/*"
+      ]
     }
   },
   "include": [
     "src/**/*",
-    "test/**/*"
+    "test/**/*",
+    "stress-test.ts"
   ],
 }

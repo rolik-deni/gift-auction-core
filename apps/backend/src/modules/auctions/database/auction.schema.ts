@@ -53,10 +53,10 @@ export class AuctionMongo {
     @Prop({ type: Number, required: true })
     roundDurationSeconds: number
 
-    @Prop({ type: Number, required: true })
+    @Prop({ type: Number, required: true, index: true })
     currentRoundNumber: number
 
-    @Prop({ type: Date, required: true, index: true })
+    @Prop({ type: Date, required: true })
     currentRoundEndsAt: Date | null
 
     @Prop({

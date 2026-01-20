@@ -1,2 +1,3 @@
 export const AUCTION_REPOSITORY = Symbol('AUCTION_REPOSITORY')
-export const PAYMENT_PORT = Symbol('PAYMENT_PORT')
+export const AUCTION_SCHEDULER_PORT = Symbol('AUCTION_SCHEDULER_PORT')
+export const WALLET_PORT = Symbol('WALLET_PORT')

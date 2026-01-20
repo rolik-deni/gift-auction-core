@@ -1,9 +1,14 @@
 import { RedisService } from '@libs/infrastructure'
+import { BullModule } from '@nestjs/bullmq'
 import { Module, Provider } from '@nestjs/common'
 import { CqrsModule } from '@nestjs/cqrs'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { AUCTION_REPOSITORY, PAYMENT_PORT } from './auction.di-tokens'
+import {
+    AUCTION_REPOSITORY,
+    AUCTION_SCHEDULER_PORT,
+    WALLET_PORT,
+} from './auction.di-tokens'
 import { AuctionMapper } from './auction.mapper'
 import {
     CreateAuctionHttpController,
@@ -14,7 +19,12 @@ import {
     StartAuctionService,
 } from './commands'
 import { AuctionMongo, AuctionRepository, AuctionSchema } from './database'
-import { BiddingRepository, PaymentAdapter } from './infrastructure'
+import {
+    AuctionProcessor,
+    AuctionSchedulerAdapter,
+    BiddingRepository,
+    WalletAdapter,
+} from './infrastructure'
 import { GetAuctionHttpController, GetAuctionService } from './queries'
 
 const commandHandlers: Provider[] = [
@@ -29,7 +39,8 @@ const mappers: Provider[] = [AuctionMapper]
 
 const repositories: Provider[] = [
     { provide: AUCTION_REPOSITORY, useClass: AuctionRepository },
-    { provide: PAYMENT_PORT, useClass: PaymentAdapter },
+    { provide: AUCTION_SCHEDULER_PORT, useClass: AuctionSchedulerAdapter },
+    { provide: WALLET_PORT, useClass: WalletAdapter },
 ]
 
 const httpControllers = [
@@ -42,6 +53,7 @@ const httpControllers = [
 @Module({
     imports: [
         CqrsModule,
+        BullModule.registerQueue({ name: 'auction' }),
         MongooseModule.forFeature([
             { name: AuctionMongo.name, schema: AuctionSchema },
         ]),
@@ -52,6 +64,7 @@ const httpControllers = [
         ...mappers,
         ...queryHandlers,
         ...repositories,
+        AuctionProcessor,
         BiddingRepository,
         RedisService,
     ],
