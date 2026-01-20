@@ -10,12 +10,18 @@ import {
     CreateAuctionService,
     PlaceBidHttpController,
     PlaceBidService,
+    StartAuctionHttpController,
+    StartAuctionService,
 } from './commands'
 import { AuctionMongo, AuctionRepository, AuctionSchema } from './database'
 import { BiddingRepository, PaymentAdapter } from './infrastructure'
 import { GetAuctionHttpController, GetAuctionService } from './queries'
 
-const commandHandlers: Provider[] = [CreateAuctionService, PlaceBidService]
+const commandHandlers: Provider[] = [
+    CreateAuctionService,
+    PlaceBidService,
+    StartAuctionService,
+]
 
 const queryHandlers: Provider[] = [GetAuctionService]
 
@@ -30,6 +36,7 @@ const httpControllers = [
     CreateAuctionHttpController,
     GetAuctionHttpController,
     PlaceBidHttpController,
+    StartAuctionHttpController,
 ]
 
 @Module({

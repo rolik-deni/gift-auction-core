@@ -20,7 +20,6 @@ export class CreateUserService implements ICommandHandler<
 
     async execute(command: CreateUserCommand): Promise<AggregateID> {
         const user = UserEntity.create({
-            ...command,
             name: command.name ?? faker.person.fullName(),
         })
 

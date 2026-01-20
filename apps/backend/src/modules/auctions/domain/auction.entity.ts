@@ -32,6 +32,10 @@ export class AuctionEntity extends AggregateRoot<AuctionProps> {
         return this.props.status
     }
 
+    get currentRoundNumber(): number {
+        return this.props.currentRoundNumber
+    }
+
     static create(props: CreateAuctionProps): AuctionEntity {
         if (props.roundsTotal <= 0) {
             throw new ArgumentOutOfRangeException(
