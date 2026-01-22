@@ -8,9 +8,16 @@ export type AuctionFindOneQuery = {
     currentRoundNumber?: number
 }
 
+export type AuctionFindManyQuery = {
+    ids?: string[]
+    statuses?: AuctionStatus[]
+    currentRoundNumbers?: number[]
+}
+
 export type AuctionRepositoryPort = RepositoryPort<
     AuctionEntity,
     AuctionFindOneQuery
 > & {
+    findMany(query: AuctionFindManyQuery): Promise<AuctionEntity[]>
     extendRound(auctionId: string, newEndsAt: Date): Promise<string | null>
 }

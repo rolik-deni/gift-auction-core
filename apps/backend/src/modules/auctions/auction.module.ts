@@ -38,6 +38,8 @@ import {
     GetAuctionHistoryService,
     GetAuctionHttpController,
     GetAuctionService,
+    GetAuctionsHttpController,
+    GetAuctionsService,
     GetLeaderboardHttpController,
     GetLeaderboardService,
 } from './queries'
@@ -51,6 +53,7 @@ const commandHandlers: Provider[] = [
 const queryHandlers: Provider[] = [
     GetAuctionService,
     GetAuctionHistoryService,
+    GetAuctionsService,
     GetLeaderboardService,
 ]
 
@@ -67,6 +70,7 @@ const httpControllers = [
     CreateAuctionHttpController,
     GetAuctionHttpController,
     GetAuctionHistoryHttpController,
+    GetAuctionsHttpController,
     GetLeaderboardHttpController,
     PlaceBidHttpController,
     StartAuctionHttpController,

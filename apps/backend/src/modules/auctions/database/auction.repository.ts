@@ -8,6 +8,7 @@ import { Model } from 'mongoose'
 import { AuctionMapper } from '../auction.mapper'
 import { AuctionEntity } from '../domain'
 import {
+    AuctionFindManyQuery,
     AuctionFindOneQuery,
     AuctionRepositoryPort,
 } from './auction.repository.port'
@@ -104,6 +105,21 @@ export class AuctionRepository implements AuctionRepositoryPort {
         }
 
         return record ? this._mapper.toDomain(record.toObject()) : record
+    }
+
+    async findMany(query: AuctionFindManyQuery): Promise<AuctionEntity[]> {
+        const records = await this._auctionModel
+            .find({
+                ...(query.ids?.length && { _id: { $in: query.ids } }),
+                ...(query.statuses?.length && {
+                    status: { $in: query.statuses },
+                }),
+                ...(query.currentRoundNumbers?.length && {
+                    currentRoundNumber: { $in: query.currentRoundNumbers },
+                }),
+            })
+            .exec()
+        return records.map((record) => this._mapper.toDomain(record.toObject()))
     }
 
     async extendRound(
