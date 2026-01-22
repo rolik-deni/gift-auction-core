@@ -6,7 +6,6 @@ import { useError } from '../shared/context'
 import type { IdResponse } from '../shared/types'
 
 const initialForm = {
-    title: '',
     giftName: '',
     totalItems: 100,
     roundsTotal: 1,
@@ -22,7 +21,6 @@ export const CreateAuctionPage = () => {
     const [validationError, setValidationError] = useState<string | null>(null)
 
     const isValid = useMemo(() => {
-        const hasTitle = form.title.trim().length > 0
         const hasGiftName = form.giftName.trim().length > 0
         const totalItemsValid = form.totalItems >= 1 && form.totalItems <= 1000
         const roundsTotalValid = form.roundsTotal >= 1 && form.roundsTotal <= 5
@@ -32,7 +30,6 @@ export const CreateAuctionPage = () => {
         const entryValid = Number(form.entryPriceAmount) > 0
         const divisible = form.totalItems % form.roundsTotal === 0
         return (
-            hasTitle &&
             hasGiftName &&
             totalItemsValid &&
             roundsTotalValid &&
@@ -56,7 +53,6 @@ export const CreateAuctionPage = () => {
         setSubmitting(true)
         try {
             const created = await api.post<IdResponse>('/auctions', {
-                title: form.title,
                 giftName: form.giftName,
                 totalItems: form.totalItems,
                 roundsTotal: form.roundsTotal,
@@ -81,16 +77,6 @@ export const CreateAuctionPage = () => {
             </header>
 
             <div className="card form-card">
-                <label className="field">
-                    <span>Title</span>
-                    <input
-                        value={form.title}
-                        onChange={(event) =>
-                            setForm({ ...form, title: event.target.value })
-                        }
-                        placeholder="Auction title"
-                    />
-                </label>
                 <label className="field">
                     <span>Gift name</span>
                     <input
@@ -163,6 +149,9 @@ export const CreateAuctionPage = () => {
                         }
                     />
                 </label>
+                <div className="muted">
+                    Total gifts must be divisible by number of rounds.
+                </div>
 
                 {validationError && (
                     <div className="error-text">{validationError}</div>

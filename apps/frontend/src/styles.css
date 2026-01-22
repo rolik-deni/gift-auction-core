@@ -153,6 +153,11 @@ input {
     padding: 4px 0;
 }
 
+.leader-row.highlight {
+    font-weight: 700;
+    text-decoration: underline;
+}
+
 .leader-me {
     margin-top: 12px;
     padding: 10px;

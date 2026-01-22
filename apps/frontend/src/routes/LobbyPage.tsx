@@ -55,7 +55,7 @@ export const LobbyPage = () => {
                         {wallet && wallet.lockedAmount !== '0' && (
                             <span className="muted">
                                 {' '}
-                                (Locked {formatStars(wallet.lockedAmount)})
+                                ({formatStars(wallet.lockedAmount)} locked)
                             </span>
                         )}
                     </div>
@@ -91,20 +91,18 @@ export const LobbyPage = () => {
                 <div className="cards">
                     {activeAuctions.map((auction) => (
                         <article key={auction.id} className="card">
-                            <div className="card-title">{auction.title}</div>
-                            <div className="card-meta">
-                                Gift: {auction.giftName}
+                            <div className="card-title">
+                                {auction.giftName}
                             </div>
-                            <div className="card-meta">Status: ACTIVE</div>
                             <div className="card-meta">
-                                Round: {auction.currentRoundNumber}/
+                                {auction.remainingItems} gifts left
+                            </div>
+                            <div className="card-meta">
+                                Round {auction.currentRoundNumber} of{' '}
                                 {auction.roundsTotal}
                             </div>
                             <div className="card-meta">
-                                Remaining: {auction.remainingItems}
-                            </div>
-                            <div className="card-meta">
-                                Time left: {formatTimer(auction.timeLeftSeconds)}
+                                Ends in {formatTimer(auction.timeLeftSeconds)}
                             </div>
                             <Link
                                 to={`/gift-auction/auctions/${auction.id}`}
@@ -125,13 +123,8 @@ export const LobbyPage = () => {
                 <div className="cards">
                     {completedAuctions.map((auction) => (
                         <article key={auction.id} className="card">
-                            <div className="card-title">{auction.title}</div>
-                            <div className="card-meta">
-                                Gift: {auction.giftName}
-                            </div>
-                            <div className="card-meta">Status: COMPLETED</div>
-                            <div className="card-meta">
-                                Rounds: {auction.roundsTotal}
+                            <div className="card-title">
+                                {auction.giftName}
                             </div>
                             <Link
                                 to={`/gift-auction/auctions/${auction.id}`}

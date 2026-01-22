@@ -54,6 +54,7 @@ export type LeaderboardResponse = {
 export type HistoryWinner = {
     rank: number
     userId: string
+    userName: string
     bidAmount: string
     bidPlacedAt: string
 }

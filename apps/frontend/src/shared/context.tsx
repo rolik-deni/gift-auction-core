@@ -54,6 +54,15 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         setWallet(response)
     }, [])
 
+    const fetchUser = useCallback(async (userId: string) => {
+        try {
+            const response = await api.get<User>(`/users/${userId}`)
+            setUser({ id: response.id, name: response.name })
+        } catch {
+            setUser({ id: userId, name: buildUserName(userId) })
+        }
+    }, [])
+
     const refreshWallet = useCallback(async () => {
         if (!user) {
             return
@@ -71,11 +80,8 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const created = await api.post<IdResponse>('/users', {})
                 const userId = created.id
-                const nextUser: User = {
-                    id: userId,
-                    name: buildUserName(userId),
-                }
-                setUser(nextUser)
+                setUser({ id: userId, name: buildUserName(userId) })
+                await fetchUser(userId)
 
                 await api.post('/wallets/deposit', {
                     walletId: userId,
@@ -91,7 +97,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         }
 
         bootstrap()
-    }, [fetchWallet, setError])
+    }, [fetchUser, fetchWallet, setError])
 
     const value = useMemo(
         () => ({

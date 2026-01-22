@@ -19,7 +19,7 @@ export const ErrorToast = () => {
 
     return (
         <div className="toast">
-            <div className="toast-title">Что-то пошло не так</div>
+            <div className="toast-title">Something went wrong</div>
             <div className="toast-message">
                 {error.message}
                 {error.correlationId
@@ -27,7 +27,7 @@ export const ErrorToast = () => {
                     : ''}
             </div>
             <button className="toast-close" onClick={() => setError(null)}>
-                Закрыть
+                Close
             </button>
         </div>
     )
