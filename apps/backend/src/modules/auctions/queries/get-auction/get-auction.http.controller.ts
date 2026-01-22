@@ -1,10 +1,11 @@
 import { Controller, Get, Param } from '@nestjs/common'
 import { QueryBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { AuctionResponseDto } from '../../dtos'
 import { GetAuctionQuery } from './get-auction.query'
 
+@ApiTags('auctions')
 @Controller('auctions')
 export class GetAuctionHttpController {
     constructor(private readonly _queryBus: QueryBus) {}

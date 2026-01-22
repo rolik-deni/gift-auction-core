@@ -2,20 +2,21 @@ import { IdResponse } from '@libs/api/id.response.dto'
 import { AggregateID } from '@libs/ddd'
 import { Body, Controller, Param, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { PlaceBidCommand } from './place-bid.command'
 import { PlaceBidRequestDto } from './place-bid.request.dto'
 
+@ApiTags('auctions')
 @Controller('auctions')
 export class PlaceBidHttpController {
     constructor(private readonly _commandBus: CommandBus) {}
 
     @ApiOperation({ summary: 'Place bid' })
     @ApiResponse({ status: 200, type: IdResponse })
-    @Post(':id/bid')
+    @Post(':auctionId/bid')
     async placeBid(
-        @Param('id') auctionId: string,
+        @Param('auctionId') auctionId: string,
         @Body() body: PlaceBidRequestDto,
     ): Promise<IdResponse> {
         const command = new PlaceBidCommand({

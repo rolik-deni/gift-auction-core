@@ -2,11 +2,18 @@ import { IdResponse } from '@libs/api/id.response.dto'
 import { AggregateID } from '@libs/ddd'
 import { Body, Controller, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import {
+    ApiExcludeController,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger'
 
 import { ChargeLockedCommand } from './charge-locked.command'
 import { ChargeLockedRequestDto } from './charge-locked.request.dto'
 
+@ApiExcludeController()
+@ApiTags('wallets')
 @Controller('wallets')
 export class ChargeLockedHttpController {
     constructor(private readonly _commandBus: CommandBus) {}

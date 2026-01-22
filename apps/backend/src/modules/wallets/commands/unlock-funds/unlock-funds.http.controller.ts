@@ -2,11 +2,18 @@ import { IdResponse } from '@libs/api/id.response.dto'
 import { AggregateID } from '@libs/ddd'
 import { Body, Controller, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import {
+    ApiExcludeController,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger'
 
 import { UnlockFundsCommand } from './unlock-funds.command'
 import { UnlockFundsRequestDto } from './unlock-funds.request.dto'
 
+@ApiExcludeController()
+@ApiTags('wallets')
 @Controller('wallets')
 export class UnlockFundsHttpController {
     constructor(private readonly _commandBus: CommandBus) {}

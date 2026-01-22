@@ -1,10 +1,11 @@
 import { Controller, Get, Param } from '@nestjs/common'
 import { QueryBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { WalletResponseDto } from '../../dtos'
 import { GetWalletQuery } from './get-wallet.query'
 
+@ApiTags('wallets')
 @Controller('wallets')
 export class GetWalletHttpController {
     constructor(private readonly _queryBus: QueryBus) {}

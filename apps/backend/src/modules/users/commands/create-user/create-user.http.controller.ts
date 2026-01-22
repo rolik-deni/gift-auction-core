@@ -2,11 +2,12 @@ import { IdResponse } from '@libs/api/id.response.dto'
 import { AggregateID } from '@libs/ddd'
 import { Body, Controller, Post } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
-import { ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { CreateUserCommand } from './create-user.command'
 import { CreateUserRequestDto } from './create-user.request.dto'
 
+@ApiTags('users')
 @Controller('users')
 export class CreateUserHttpController {
     constructor(private readonly _commandBus: CommandBus) {}
