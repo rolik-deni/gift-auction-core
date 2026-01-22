@@ -49,7 +49,7 @@ export class PlaceBidService implements ICommandHandler<
             command.userId,
         )
         const oldAmount = existingBid
-            ? new BigNumber(existingBid)
+            ? new BigNumber(existingBid.amount)
             : new BigNumber(0)
 
         const newAmount = new BigNumber(command.amount)
@@ -85,6 +85,7 @@ export class PlaceBidService implements ICommandHandler<
             command.auctionId,
             command.userId,
             newAmount.toFixed(),
+            new Date(),
         )
 
         return auction.id

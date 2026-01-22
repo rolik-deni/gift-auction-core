@@ -24,6 +24,7 @@ export class CreateAuctionService implements ICommandHandler<
         )
         const auction = AuctionEntity.create({
             title: command.title,
+            giftName: command.giftName,
             totalItems: command.totalItems,
             roundsTotal: command.roundsTotal,
             roundDurationSeconds: command.roundDurationSeconds,

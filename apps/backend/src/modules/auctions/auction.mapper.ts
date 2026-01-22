@@ -17,6 +17,7 @@ export class AuctionMapper implements Mapper<
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
             title: props.title,
+            giftName: props.giftName,
             status: props.status,
             totalItems: props.totalItems,
             itemsPerRound: props.itemsPerRound,
@@ -40,6 +41,7 @@ export class AuctionMapper implements Mapper<
             updatedAt: record.updatedAt,
             props: {
                 title: record.title,
+                giftName: record.giftName,
                 status: record.status,
                 totalItems: record.totalItems,
                 itemsPerRound: record.itemsPerRound,
@@ -62,6 +64,7 @@ export class AuctionMapper implements Mapper<
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
             title: props.title,
+            giftName: props.giftName,
             status: props.status,
             totalItems: props.totalItems,
             itemsPerRound: props.itemsPerRound,
@@ -69,6 +72,8 @@ export class AuctionMapper implements Mapper<
             roundDurationSeconds: props.roundDurationSeconds,
             currentRoundNumber: props.currentRoundNumber,
             currentRoundEndsAt: props.currentRoundEndsAt,
+            remainingItems: entity.remainingItems,
+            timeLeftSeconds: entity.timeLeftSeconds,
             entryPriceAmount: props.entryPrice.amount.toFixed(),
             entryPriceCurrency: props.entryPrice.currency,
         })

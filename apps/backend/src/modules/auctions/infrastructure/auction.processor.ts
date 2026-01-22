@@ -7,6 +7,7 @@ import { Job, Queue } from 'bullmq'
 
 import { AUCTION_REPOSITORY, WALLET_PORT } from '../auction.di-tokens'
 import type { AuctionRepositoryPort } from '../database'
+import { AuctionRoundResultRepository } from '../database'
 import type { AuctionEntity, WalletPort } from '../domain'
 import { AuctionStatus } from '../domain'
 import { IBidder } from './bidder.interface'
@@ -29,6 +30,7 @@ export class AuctionProcessor extends WorkerHost {
     constructor(
         @Inject(AUCTION_REPOSITORY)
         private readonly _auctionRepository: AuctionRepositoryPort,
+        private readonly _roundResultRepository: AuctionRoundResultRepository,
         private readonly _biddingRepository: BiddingRepository,
         @Inject(WALLET_PORT)
         private readonly _walletPort: WalletPort,
@@ -81,6 +83,31 @@ export class AuctionProcessor extends WorkerHost {
         const winners = await this._biddingRepository.getTopBidders(
             auction.id,
             auction.itemsPerRound,
+        )
+
+        const roundWinners = winners.map((winner, index) => ({
+            rank: index + 1,
+            userId: winner.userId,
+            bidAmount: winner.amount,
+            bidPlacedAt: winner.bidPlacedAt,
+        }))
+        const saved = await this._roundResultRepository.saveRoundResult(
+            auction.id,
+            auction.currentRoundNumber,
+            roundWinners,
+        )
+        if (!saved) {
+            this._logger.log(
+                `Round result already exists. Auction ID: ${auction.id}, ` +
+                    `round: ${auction.currentRoundNumber}`,
+                this._getLogContext(this._settleAuctionRound.name),
+            )
+            return
+        }
+
+        await this._biddingRepository.removeBidders(
+            auction.id,
+            winners.map((winner) => winner.userId),
         )
 
         await this._chargeWinners(winners, auction)

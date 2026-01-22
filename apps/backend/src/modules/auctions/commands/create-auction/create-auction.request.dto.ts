@@ -14,6 +14,11 @@ export class CreateAuctionRequestDto {
     @IsNotEmpty()
     readonly title: string
 
+    @ApiProperty({ example: 'Replicator' })
+    @IsString()
+    @IsNotEmpty()
+    readonly giftName: string
+
     @ApiProperty({ example: 1000 })
     @IsInt()
     @Min(1)

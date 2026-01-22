@@ -1,3 +1,5 @@
 export * from './auction.repository'
 export * from './auction.repository.port'
 export * from './auction.schema'
+export * from './auction-round-result.repository'
+export * from './auction-round-result.schema'

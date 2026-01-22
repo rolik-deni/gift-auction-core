@@ -28,5 +28,6 @@ const repositories: Provider[] = [
         ...queryHandlers,
         ...repositories,
     ],
+    exports: [USER_REPOSITORY],
 })
 export class UserModule {}

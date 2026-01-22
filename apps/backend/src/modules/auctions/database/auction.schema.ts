@@ -9,6 +9,7 @@ export const auctionSchema = z.object({
     createdAt: z.date(),
     updatedAt: z.date(),
     title: z.string(),
+    giftName: z.string(),
     status: z.enum(AuctionStatus),
     totalItems: z.number(),
     itemsPerRound: z.number(),
@@ -37,6 +38,9 @@ export class AuctionMongo {
 
     @Prop({ type: String, required: true })
     title: string
+
+    @Prop({ type: String, required: true })
+    giftName: string
 
     @Prop({ type: String, required: true, enum: AuctionStatus, index: true })
     status: AuctionStatus

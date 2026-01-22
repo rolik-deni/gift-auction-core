@@ -36,6 +36,36 @@ export class AuctionEntity extends AggregateRoot<AuctionProps> {
         return this.props.currentRoundNumber
     }
 
+    get giftName(): string {
+        return this.props.giftName
+    }
+
+    get remainingItems(): number {
+        if (this.props.status === AuctionStatus.COMPLETED) {
+            return 0
+        }
+        const roundsCompleted = Math.max(this.props.currentRoundNumber - 1, 0)
+        const remaining =
+            this.props.totalItems - roundsCompleted * this.props.itemsPerRound
+        return Math.max(remaining, 0)
+    }
+
+    get timeLeftSeconds(): number {
+        if (
+            this.props.status !== AuctionStatus.ACTIVE ||
+            !this.props.currentRoundEndsAt
+        ) {
+            return 0
+        }
+
+        return Math.max(
+            0,
+            Math.floor(
+                (this.props.currentRoundEndsAt.getTime() - Date.now()) / 1000,
+            ),
+        )
+    }
+
     get itemsPerRound(): number {
         return this.props.itemsPerRound
     }

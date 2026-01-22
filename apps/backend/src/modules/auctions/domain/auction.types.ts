@@ -8,6 +8,7 @@ export enum AuctionStatus {
 
 export interface CreateAuctionProps {
     title: string
+    giftName: string
     totalItems: number
     roundsTotal: number
     roundDurationSeconds: number

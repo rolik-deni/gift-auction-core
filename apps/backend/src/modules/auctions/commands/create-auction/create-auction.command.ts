@@ -2,6 +2,7 @@ import { Command, CommandProps } from '@libs/ddd'
 
 export class CreateAuctionCommand extends Command {
     readonly title: string
+    readonly giftName: string
     readonly totalItems: number
     readonly roundsTotal: number
     readonly roundDurationSeconds: number
@@ -11,6 +12,7 @@ export class CreateAuctionCommand extends Command {
     constructor(props: CommandProps<CreateAuctionCommand>) {
         super(props)
         this.title = props.title
+        this.giftName = props.giftName
         this.totalItems = props.totalItems
         this.roundsTotal = props.roundsTotal
         this.roundDurationSeconds = props.roundDurationSeconds
