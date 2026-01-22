@@ -7,6 +7,9 @@ export class AuctionHistoryWinnerDto {
     @ApiProperty({ example: 'user-uuid' })
     userId: string
 
+    @ApiProperty({ example: 'Cynthia Beatty' })
+    userName: string
+
     @ApiProperty({ example: '150.00' })
     bidAmount: string
 
