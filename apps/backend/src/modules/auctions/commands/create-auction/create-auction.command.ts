@@ -1,7 +1,7 @@
 import { Command, CommandProps } from '@libs/ddd'
 
 export class CreateAuctionCommand extends Command {
-    readonly title: string
+    readonly title?: string
     readonly giftName: string
     readonly totalItems: number
     readonly roundsTotal: number

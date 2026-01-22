@@ -11,6 +11,10 @@ export interface WalletResponseProps extends BaseResponseProps {
 export class WalletResponseDto extends ResponseBase {
     constructor(props: WalletResponseProps) {
         super(props)
+        this.userId = props.userId
+        this.currency = props.currency
+        this.balanceAmount = props.balanceAmount
+        this.lockedAmount = props.lockedAmount
     }
 
     @ApiProperty({ example: 'user-uuid' })

@@ -22,8 +22,9 @@ export class CreateAuctionService implements ICommandHandler<
             command.entryPriceAmount,
             command.entryPriceCurrency ?? 'XTR',
         )
+        const title = command.title?.trim() || command.giftName
         const auction = AuctionEntity.create({
-            title: command.title,
+            title,
             giftName: command.giftName,
             totalItems: command.totalItems,
             roundsTotal: command.roundsTotal,

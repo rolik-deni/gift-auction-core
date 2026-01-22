@@ -44,7 +44,7 @@ export class WalletMapper implements Mapper<WalletEntity, WalletPersistence> {
             updatedAt: props.updatedAt,
             userId: props.userId,
             balanceAmount: props.balance.amount.toFixed(),
-            lockedAmount: props.balance.amount.toFixed(),
+            lockedAmount: props.locked.amount.toFixed(),
             currency: props.balance.currency,
         })
         return response

@@ -9,10 +9,11 @@ import {
 } from 'class-validator'
 
 export class CreateAuctionRequestDto {
-    @ApiProperty({ example: 'Gift auction' })
+    @ApiProperty({ example: 'Gift auction', required: false })
+    @IsOptional()
     @IsString()
     @IsNotEmpty()
-    readonly title: string
+    readonly title?: string
 
     @ApiProperty({ example: 'Replicator' })
     @IsString()
