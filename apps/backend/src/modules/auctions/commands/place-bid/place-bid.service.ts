@@ -1,9 +1,10 @@
 import { AggregateID, Money } from '@libs/ddd'
 import { ArgumentInvalidException } from '@libs/exceptions'
-import { Inject } from '@nestjs/common'
+import { Inject, Logger } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 import { BigNumber } from 'bignumber.js'
 
+import { getLogContext, inspectInline } from '../../../../libs/utils'
 import { AUCTION_REPOSITORY, WALLET_PORT } from '../../auction.di-tokens'
 import type { AuctionRepositoryPort } from '../../database'
 import { AuctionStatus } from '../../domain'
@@ -30,6 +31,12 @@ export class PlaceBidService implements ICommandHandler<
     PlaceBidCommand,
     AggregateID
 > {
+    private readonly _logger = new Logger()
+    private readonly _getLogContext = getLogContext.bind(
+        this,
+        PlaceBidService.name,
+    )
+
     constructor(
         @Inject(AUCTION_REPOSITORY)
         private readonly _auctionRepository: AuctionRepositoryPort,
@@ -90,6 +97,15 @@ export class PlaceBidService implements ICommandHandler<
             command.userId,
             newAmount.toFixed(),
             new Date(),
+        )
+
+        this._logger.debug(
+            `Bid placed (${inspectInline({
+                auctionId: command.auctionId,
+                userId: command.userId,
+                amount: newAmount.toFixed(),
+            })}).`,
+            this._getLogContext(this.execute.name),
         )
 
         const endsAt = auction.currentRoundEndsAt

@@ -1,5 +1,6 @@
 import { AggregateID, Money } from '@libs/ddd'
-import { Inject } from '@nestjs/common'
+import { getLogContext, inspectInline } from '@libs/utils'
+import { Inject, Logger } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 
 import { AUCTION_REPOSITORY } from '../../auction.di-tokens'
@@ -12,6 +13,12 @@ export class CreateAuctionService implements ICommandHandler<
     CreateAuctionCommand,
     AggregateID
 > {
+    private readonly _logger = new Logger()
+    private readonly _getLogContext = getLogContext.bind(
+        this,
+        CreateAuctionService.name,
+    )
+
     constructor(
         @Inject(AUCTION_REPOSITORY)
         private readonly _auctionRepository: AuctionRepositoryPort,
@@ -33,6 +40,11 @@ export class CreateAuctionService implements ICommandHandler<
         })
 
         await this._auctionRepository.save(auction)
+
+        this._logger.log(
+            `Auction created (${inspectInline({ id: auction.id })})`,
+            this._getLogContext(this.execute.name),
+        )
 
         return auction.id
     }

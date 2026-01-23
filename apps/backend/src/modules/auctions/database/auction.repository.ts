@@ -39,11 +39,6 @@ export class AuctionRepository implements AuctionRepositoryPort {
             record.updatedAt = updatedAt
         })
 
-        this._logger.debug(
-            `Saving ${entities.length} entities to "auctions" collection`,
-            this._getLogContext(this.save.name),
-        )
-
         if (records.length === 1) {
             await this._auctionModel
                 .updateOne(

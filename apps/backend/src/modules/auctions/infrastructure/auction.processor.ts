@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Money } from '@libs/ddd'
-import { getLogContext } from '@libs/utils'
+import { getLogContext, inspectInline } from '@libs/utils'
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Job, Queue } from 'bullmq'
@@ -78,8 +78,6 @@ export class AuctionProcessor extends WorkerHost {
     }
 
     private async _settleAuctionRound(auction: AuctionEntity): Promise<void> {
-        const logContext = this._getLogContext(this._settleAuctionRound.name)
-
         const winners = await this._biddingRepository.getTopBidders(
             auction.id,
             auction.itemsPerRound,
@@ -97,9 +95,11 @@ export class AuctionProcessor extends WorkerHost {
             roundWinners,
         )
         if (!saved) {
-            this._logger.log(
-                `Round result already exists. Auction ID: ${auction.id}, ` +
-                    `round: ${auction.currentRoundNumber}`,
+            this._logger.warn(
+                `Round result already exists (${inspectInline({
+                    id: auction.id,
+                    round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                })})`,
                 this._getLogContext(this._settleAuctionRound.name),
             )
             return
@@ -121,9 +121,8 @@ export class AuctionProcessor extends WorkerHost {
 
         if (auction.status === AuctionStatus.COMPLETED) {
             this._logger.log(
-                `Auction finished. Auction ID: ${auction.id}, round: ` +
-                    `${auction.currentRoundNumber}/${auction.roundsTotal}`,
-                logContext,
+                `Auction finished (${inspectInline({ id: auction.id })})`,
+                this._getLogContext(this._settleAuctionRound.name),
             )
         }
 
@@ -145,6 +144,15 @@ export class AuctionProcessor extends WorkerHost {
         auction: AuctionEntity,
     ): Promise<void> {
         if (winners.length) {
+            this._logger.debug(
+                `Round finished, charging winners (${inspectInline({
+                    id: auction.id,
+                    round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                    winners: winners.length,
+                })})`,
+                this._getLogContext(this._chargeWinners.name),
+            )
+
             await Promise.all(
                 winners.map((winner) =>
                     this._walletPort.chargeLocked(
@@ -157,13 +165,6 @@ export class AuctionProcessor extends WorkerHost {
                 ),
             )
         }
-
-        this._logger.debug(
-            `Round finished, charged winners. Auction ID: ${auction.id}, ` +
-                `round: ${auction.currentRoundNumber}/${auction.roundsTotal}, ` +
-                `winners: ${winners.length}`,
-            this._getLogContext(this._chargeWinners.name),
-        )
     }
 
     private async _unlockFundsForAllBidders(
@@ -174,6 +175,15 @@ export class AuctionProcessor extends WorkerHost {
         const chunkSize = 500
         let offset = 0
         let refundedCount = 0
+
+        this._logger.debug(
+            `Round finished, refunded funds (${inspectInline({
+                id: auction.id,
+                round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                refunded: refundedCount,
+            })})`,
+            this._getLogContext(this._unlockFundsForAllBidders.name),
+        )
 
         while (true) {
             const chunk = await this._biddingRepository.getBiddersChunk(
@@ -202,13 +212,6 @@ export class AuctionProcessor extends WorkerHost {
 
             offset += chunkSize
         }
-
-        this._logger.debug(
-            `Round finished, refunded funds. Auction ID: ${auction.id}, ` +
-                `round: ${auction.currentRoundNumber}/${auction.roundsTotal}, ` +
-                `refunded: ${refundedCount}`,
-            this._getLogContext(this._unlockFundsForAllBidders.name),
-        )
     }
 
     private async _scheduleNextRound(
@@ -216,13 +219,16 @@ export class AuctionProcessor extends WorkerHost {
         roundNumber: number,
         delayMs: number,
     ): Promise<void> {
-        const delay = Math.max(delayMs, 0)
         this._logger.log(
-            `Round finished, scheduling next round. Auction ID: ` +
-                `${auction.id}, round: ${roundNumber}/${auction.roundsTotal}, ` +
-                `round ends at: ${auction.currentRoundEndsAt?.toUTCString()}`,
+            `Round finished, scheduling next round (${inspectInline({
+                id: auction.id,
+                round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                roundEndsAt: auction.currentRoundEndsAt?.toUTCString(),
+            })})`,
             this._getLogContext(this._scheduleNextRound.name),
         )
+
+        const delay = Math.max(delayMs, 0)
 
         await this._queue.add(
             'settle-round',
@@ -244,9 +250,11 @@ export class AuctionProcessor extends WorkerHost {
         const { id: auctionId } = auction
 
         this._logger.log(
-            `Round extended, rescheduling. Auction ID: ${auction.id}, ` +
-                `round: ${auction.currentRoundNumber}/${auction.roundsTotal}, ` +
-                `round ends at: ${auction.currentRoundEndsAt?.toUTCString()}`,
+            `Round extended, rescheduling (${inspectInline({
+                id: auction.id,
+                round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                roundEndsAt: auction.currentRoundEndsAt?.toUTCString(),
+            })})`,
             this._getLogContext(this._rescheduleRound.name),
         )
 

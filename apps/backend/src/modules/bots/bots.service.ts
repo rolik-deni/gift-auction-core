@@ -1,3 +1,4 @@
+import { getLogContext, inspectInline } from '@libs/utils'
 import { PlaceBidCommand } from '@modules/auctions/commands'
 import { AuctionStatus } from '@modules/auctions/domain'
 import {
@@ -38,7 +39,9 @@ type RetryOptions = {
 
 @Injectable()
 export class BotsService implements OnModuleDestroy {
-    private readonly _logger = new Logger(BotsService.name)
+    private readonly _logger = new Logger()
+    private readonly _getLogContext = getLogContext.bind(this, BotsService.name)
+
     private readonly _config = getBotsConfig()
     private readonly _pools = new Map<string, BotPool>()
     private readonly _rateLimiter = new SimpleRateLimiter(
@@ -71,7 +74,10 @@ export class BotsService implements OnModuleDestroy {
 
         this._clearTimers(pool)
         this._pools.delete(event.aggregateId)
-        this._logger.log(`Bots stopped. Auction ID: ${event.aggregateId}`)
+        this._logger.log(
+            `Bots stopped (${inspectInline({ auctionId: event.aggregateId })})`,
+            this._getLogContext(this.onAuctionCompleted.name),
+        )
     }
 
     onModuleDestroy(): void {
@@ -100,7 +106,12 @@ export class BotsService implements OnModuleDestroy {
 
         try {
             this._logger.log(
-                `Creating bots pool for auction ${auctionId} (normal: ${this._config.normalCount}, sniper: ${this._config.sniperCount})`,
+                `Creating bots pool for auction (${inspectInline({
+                    auctionId,
+                    normal: this._config.normalCount,
+                    sniper: this._config.sniperCount,
+                })})`,
+                this._getLogContext(this._createPool.name),
             )
 
             pool.normalBots = await this._createBots(
@@ -117,9 +128,10 @@ export class BotsService implements OnModuleDestroy {
             return pool
         } catch (error) {
             this._logger.error(
-                `Failed to create bots pool for auction ${auctionId}: ${this._errorMessage(
-                    error,
-                )}`,
+                `Failed to create bots pool for auction ${auctionId}: ` +
+                    `${this._errorMessage(error)}`,
+                undefined,
+                this._getLogContext(this._createPool.name),
             )
             return undefined
         }
@@ -155,7 +167,6 @@ export class BotsService implements OnModuleDestroy {
                             new DepositFundsCommand({
                                 walletId: userId,
                                 amount: depositAmount.toString(),
-                                currency: 'XTR',
                             }),
                         ),
                     ),
@@ -472,15 +483,19 @@ export class BotsService implements OnModuleDestroy {
                 message.includes('Auction is not active') ||
                 message.includes('Bid is below the entry price')
             ) {
-                this._logger.debug(
-                    `Bot bid rejected (${mode}). Auction ${auctionId}, bot ${bot.id}. ${message}`,
+                this._logger.warn(
+                    `Bot bid rejected (${mode}). Auction ${auctionId}, ` +
+                        `bot ${bot.id}. ${message}`,
+                    this._getLogContext(this._attemptBid.name),
                 )
                 return
             }
 
             if (!this._isRetriable(error)) {
-                this._logger.debug(
-                    `Bot bid failed (${mode}). Auction ${auctionId}, bot ${bot.id}. ${message}`,
+                this._logger.warn(
+                    `Bot bid failed (${mode}). Auction ${auctionId}, ` +
+                        `bot ${bot.id}. ${message}`,
+                    this._getLogContext(this._attemptBid.name),
                 )
             }
         }
@@ -502,10 +517,11 @@ export class BotsService implements OnModuleDestroy {
                 },
             )
         } catch (error) {
-            this._logger.debug(
+            this._logger.warn(
                 `Bots failed to fetch auction ${auctionId}: ${this._errorMessage(
                     error,
                 )}`,
+                this._getLogContext(this._safeGetAuction.name),
             )
             return null
         }
@@ -529,10 +545,10 @@ export class BotsService implements OnModuleDestroy {
                 },
             )
         } catch (error) {
-            this._logger.debug(
-                `Bots failed to fetch leaderboard for ${auctionId}: ${this._errorMessage(
-                    error,
-                )}`,
+            this._logger.warn(
+                `Bots failed to fetch leaderboard for ${auctionId}: ` +
+                    `${this._errorMessage(error)}`,
+                this._getLogContext(this._safeGetLeaderboard.name),
             )
             return null
         }
@@ -605,7 +621,8 @@ export class BotsService implements OnModuleDestroy {
         pool.lastRoundEndsAtMs = endsAtMs
 
         this._logger.log(
-            `Bots round started. Auction ID: ${auctionId}, round: ${activeRound}`,
+            `Bots round started (${inspectInline({ auctionId, round: activeRound })})`,
+            this._getLogContext(this._handleRoundStart.name),
         )
 
         this._startNormalBots(pool, auction, endsAtMs, activeRound)

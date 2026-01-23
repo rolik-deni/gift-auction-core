@@ -1,98 +1,133 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend Auction Challenge — Gift Auctions (демо)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Этот репозиторий — реализация многораундового аукциона цифровых товаров для демонстрации корректной бизнес‑логики, конкурентности и поведения системы под нагрузкой.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- Публичный демо-стенд: http://37.230.115.171/gift-auction/
+- Демонстрация работы: https://disk.yandex.ru/i/-Vv_HKNwi2s2_w
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 1 Механика аукциона
 
-## Project setup
+### 1.1 Многораундовость
+
+- Аукцион состоит из roundsTotal раундов.
+- Всего разыгрывается totalItems подарков.
+- В каждом раунде разыгрывается itemsPerRound = totalItems / roundsTotal.
+- По окончании раунда победителями становятся участники, занявшие топ itemsPerRound в лидерборде текущего раунда.
+- Те, кто не выиграл в этом раунде, продолжают участие в следующих раундах.
+
+### 1.2 Ставки и ранжирование
+
+- Ставка пользователя — его текущая максимальная ставка в рамках аукциона.
+- Повышение ставки возможно только вверх.
+- Ранжирование: выше ставка → выше место.
+- Tie‑breaker при равной ставке: более ранняя ставка имеет приоритет.
+
+### 1.3 Деньги (Wallet)
+
+- У пользователя есть кошелёк.
+- При повышении ставки блокируется только дельта: newBid - oldBid.
+- При выигрыше раунда заблокированные средства списываются.
+- В конце аукциона всем невыигравшим участникам оставшиеся заблокированные средства разблокируются (refund).
+
+### 1.4 Anti‑sniping (продление раунда)
+
+- Если ставка сделана ближе, чем AUCTIONS_ANTI_SNIPING_THRESHOLD_MS до конца раунда, раунд продлевается на AUCTIONS_ANTI_SNIPING_EXTENSION_SEC секунд.
+- Продление реализовано так, чтобы не создавать лишнюю нагрузку на MongoDB: время окончания раунда обновляется только при реальной необходимости (условное обновление).
+
+---
+
+## 2 Архитектурные решения
+
+### 2.1 Mongo + Redis
+
+- MongoDB хранит состояние аукциона (параметры, статус, текущий раунд, время окончания), а также историю победителей по раундам.
+- Redis хранит лидерборд ставок в Sorted Set, чтобы быстро получать:
+  - топ N участников,
+  - место конкретного пользователя,
+  - значения ставок.
+
+### 2.2 Модули
+
+- users: создание пользователя.
+- wallets: кошелёк и финансовые операции (deposit / lock / unlock / charge).
+- auctions: создание/старт аукциона, прием ставок, лидерборд, round settlement, история победителей.
+- bots: генерация активности и нагрузочное тестирование.
+
+### 2.3 Background processing
+
+Завершение раунда происходит по времени в фоне, чтобы аукцион корректно двигался независимо от активности клиентов.
+
+### 2.4 CQRS + DDH (Vertical Slice)
+
+Проект использует CQRS-идею: операции изменения состояния оформлены как commands, а чтение — как queries (разделение моделей записи и чтения).
+Код организован в стиле DDH/DDD + Vertical Slice: бизнес‑правила находятся в доменных сущностях/VO, а прикладные use‑cases сгруппированы по фичам (команда/запрос/контроллер/DTO рядом), что упрощает развитие и проверку отдельных сценариев.
+
+---
+
+## 3 Боты = нагрузочное тестирование
+
+В проекте есть модуль bots, который используется как встроенное нагрузочное тестирование: он создаёт пользователей, пополняет кошельки и генерирует ставки по стратегиям «фон» + «снайпинг».
+
+### 3.1 Типы ботов
+
+- Normal bots: делают ставки с рандомным интервалом в течение раунда и прекращают за N секунд до конца.
+- Sniper bots: создают всплеск ставок за M секунд до конца (проверка anti‑sniping), при этом количество продлений ограничивается.
+
+---
+
+## 4 API (кратко)
+
+Основные эндпоинты:
+
+- POST /api/users
+- GET /api/users/:userId
+- GET /api/wallets/:walletId
+- POST /api/wallets/deposit
+- POST /api/auctions
+- GET /api/auctions
+- GET /api/auctions/:auctionId
+- PATCH /api/auctions/:id/start
+- POST /api/auctions/:id/bid
+- GET /api/auctions/:auctionId/leaderboard?userId=...
+- GET /api/auctions/:auctionId/history
+
+---
+
+## 5 Запуск
+
+### 5.1 Требования
+
+- Docker + Docker Compose.
+
+### 5.2 Запуск
 
 ```bash
-$ npm install
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
+
+# dev
+docker compose up --build
+
+# production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-## Compile and run the project
+### 5.3 URLs
 
-```bash
-# development
-$ npm run start
+- Frontend: http://localhost
+- Backend (через nginx proxy): http://localhost/api
+- Swagger: http://localhost/api/docs
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
-```
+### 6 Переменные, влияющие на нагрузку
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- BOTS_ENABLED — включает/выключает запуск ботов (если false, боты не создаются и ставки не генерируются).
+- BOTS_NORMAL_COUNT — количество «обычных» ботов, которые создают фоновую активность ставками.
+- BOTS_NORMAL_BID_INTERVAL_MS_MIN/MAX — минимальный/максимальный интервал (в мс) между ставками одного обычного‑бота; чем меньше значения, тем выше средняя частота ставок.
+- BOTS_SNIPER_COUNT — количество «снайперских» ботов, которые делают ставки в конце раунда.
+- BOTS_SNIPER_BURST_SIZE_MIN/MAX — минимальное/максимальное кол-во ставок под завершение раунда; чем больше, тем выше пик нагрузки.
+- AUCTIONS_ANTI_SNIPING_THRESHOLD_MS — порог «анти‑снайпинга» в миллисекундах: если ставка сделана ближе к концу, чем это значение, раунд продлевается.
+- AUCTIONS_ANTI_SNIPING_EXTENSION_SEC — на сколько секунд продлевается раунд, если сработал anti‑sniping.

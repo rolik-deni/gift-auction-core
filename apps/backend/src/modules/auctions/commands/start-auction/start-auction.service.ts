@@ -1,5 +1,5 @@
 import { AggregateID } from '@libs/ddd'
-import { getLogContext } from '@libs/utils'
+import { getLogContext, inspectInline } from '@libs/utils'
 import { Inject, Logger } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 
@@ -40,9 +40,10 @@ export class StartAuctionService implements ICommandHandler<
 
         if (auction.currentRoundEndsAt) {
             this._logger.log(
-                `Auction started. Auction ID: ${auction.id}, round: ` +
-                    `${auction.currentRoundNumber}/${auction.roundsTotal}, ` +
-                    `round ends at: ${auction.currentRoundEndsAt?.toUTCString()}`,
+                `Auction started (${inspectInline({
+                    id: auction.id,
+                    round: `${auction.currentRoundNumber}/${auction.roundsTotal}`,
+                })})`,
                 this._getLogContext(this.execute.name),
             )
 

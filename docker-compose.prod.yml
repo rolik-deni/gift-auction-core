@@ -1,0 +1,6 @@
+services:
+  backend:
+    build:
+      target: production
+    env_file:
+      - ./apps/backend/.env

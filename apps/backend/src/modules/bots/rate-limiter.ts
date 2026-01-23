@@ -17,7 +17,7 @@ export class SimpleRateLimiter {
 
     schedule<T>(task: Task<T>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
-            const run = () => {
+            const run = (): void => {
                 this._tokens -= 1
                 task().then(resolve).catch(reject)
             }

@@ -38,11 +38,6 @@ export class WalletRepository implements WalletRepositoryPort {
             record.updatedAt = updatedAt
         })
 
-        this._logger.debug(
-            `Saving ${entities.length} entities to "wallets" collection`,
-            this._getLogContext(this.save.name),
-        )
-
         if (records.length === 1) {
             await this._walletModel
                 .updateOne(

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { AggregateID } from '@libs/ddd'
-import { Inject } from '@nestjs/common'
+import { getLogContext, inspectInline } from '@libs/utils'
+import { Inject, Logger } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 
 import type { UserRepositoryPort } from '../../database'
@@ -13,6 +14,12 @@ export class CreateUserService implements ICommandHandler<
     CreateUserCommand,
     AggregateID
 > {
+    private readonly _logger = new Logger()
+    private readonly _getLogContext = getLogContext.bind(
+        this,
+        CreateUserService.name,
+    )
+
     constructor(
         @Inject(USER_REPOSITORY)
         protected readonly userRepository: UserRepositoryPort,
@@ -24,6 +31,12 @@ export class CreateUserService implements ICommandHandler<
         })
 
         await this.userRepository.save(user)
+
+        this._logger.log(
+            `User created (${inspectInline({ id: user.id })})`,
+            this._getLogContext(this.execute.name),
+        )
+
         return user.id
     }
 }

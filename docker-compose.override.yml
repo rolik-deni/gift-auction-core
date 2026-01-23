@@ -1,0 +1,9 @@
+services:
+  backend:
+    build:
+      target: development
+    env_file:
+      - ./apps/backend/.env
+    volumes:
+      - ./apps/backend:/usr/src/app
+      - /usr/src/app/node_modules

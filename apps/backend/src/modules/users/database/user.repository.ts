@@ -35,11 +35,6 @@ export class UserRepository implements UserRepositoryPort {
             record.updatedAt = updatedAt
         })
 
-        this._logger.debug(
-            `Saving ${entities.length} entities to "users" collection`,
-            this._getLogContext(this.save.name),
-        )
-
         if (records.length === 1) {
             await this._userModel
                 .updateOne(
