@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { api } from '../shared/api'
@@ -11,6 +11,9 @@ export const LobbyPage = () => {
     const { setError } = useError()
     const [auctions, setAuctions] = useState<Auction[]>([])
     const [loadingAuctions, setLoadingAuctions] = useState(false)
+    const pollMs = Number(import.meta.env.VITE_POLL_MS ?? 3000)
+    const pollIntervalMs =
+        Number.isFinite(pollMs) && pollMs > 0 ? pollMs : 3000
 
     const activeAuctions = useMemo(
         () => auctions.filter((auction) => auction.status === 'ACTIVE'),
@@ -21,21 +24,39 @@ export const LobbyPage = () => {
         [auctions],
     )
 
-    const loadAuctions = async () => {
-        setLoadingAuctions(true)
+    const loadAuctions = useCallback(
+        async (silent = false) => {
+            if (!silent) {
+                setLoadingAuctions(true)
+            }
         try {
             const response = await api.get<Auction[]>('/auctions')
             setAuctions(response)
         } catch (error) {
             setError(error as { message: string; correlationId?: string })
         } finally {
-            setLoadingAuctions(false)
+            if (!silent) {
+                setLoadingAuctions(false)
+            }
         }
-    }
+        },
+        [setError],
+    )
 
     useEffect(() => {
         void loadAuctions()
-    }, [])
+        const timer = setInterval(() => {
+            void loadAuctions(true)
+        }, pollIntervalMs)
+        return () => clearInterval(timer)
+    }, [loadAuctions, pollIntervalMs])
+
+    useEffect(() => {
+        if (!user) {
+            return
+        }
+        void refreshWallet()
+    }, [refreshWallet, user])
 
     return (
         <div className="page">
@@ -59,13 +80,6 @@ export const LobbyPage = () => {
                             </span>
                         )}
                     </div>
-                    <button
-                        className="button secondary"
-                        onClick={() => refreshWallet()}
-                        disabled={loading}
-                    >
-                        Refresh wallet
-                    </button>
                 </div>
             </header>
 
@@ -73,13 +87,6 @@ export const LobbyPage = () => {
                 <Link to="/gift-auction/auctions/new" className="button">
                     Create auction
                 </Link>
-                <button
-                    className="button ghost"
-                    onClick={() => loadAuctions()}
-                    disabled={loadingAuctions}
-                >
-                    Refresh list
-                </button>
             </div>
 
             <section className="section">
