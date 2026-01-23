@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { QueryBus } from '@nestjs/cqrs'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { GetUserQuery } from './get-user.query'
 import { GetUserResponseDto } from './get-user.response.dto'

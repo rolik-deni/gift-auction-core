@@ -3,8 +3,8 @@ import { CqrsModule } from '@nestjs/cqrs'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { CreateUserHttpController, CreateUserService } from './commands'
-import { GetUserHttpController, GetUserService } from './queries'
 import { UserMongo, UserRepository, UserSchema } from './database'
+import { GetUserHttpController, GetUserService } from './queries'
 import { USER_REPOSITORY } from './user.di-tokens'
 import { UserMapper } from './user.mapper'
 

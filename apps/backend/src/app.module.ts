@@ -8,11 +8,13 @@ import { RequestContextModule } from 'nestjs-request-context'
 import { bullConnectionConfig, mongooseModuleOptions } from './configs'
 import { ContextInterceptor, ExceptionInterceptor } from './libs/application'
 import { AuctionModule } from './modules/auctions/auction.module'
+import { BotsModule } from './modules/bots/bots.module'
 import { UserModule } from './modules/users/user.module'
 import { WalletModule } from './modules/wallets/wallet.module'
 @Module({
     imports: [
         AuctionModule,
+        BotsModule,
         BullModule.forRoot(bullConnectionConfig),
         EventEmitterModule.forRoot(),
         MongooseModule.forRootAsync({ useFactory: mongooseModuleOptions }),

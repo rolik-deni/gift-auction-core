@@ -6,10 +6,10 @@ import { useError } from '../shared/context'
 import type { IdResponse } from '../shared/types'
 
 const initialForm = {
-    giftName: '',
-    totalItems: 100,
-    roundsTotal: 1,
-    roundDurationSeconds: 60,
+    giftName: 'Reproductor',
+    totalItems: 9,
+    roundsTotal: 3,
+    roundDurationSeconds: 30,
     entryPriceAmount: '10',
 }
 

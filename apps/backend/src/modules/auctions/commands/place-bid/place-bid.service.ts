@@ -11,6 +11,20 @@ import type { WalletPort } from '../../domain/ports/wallet.port'
 import { BiddingRepository } from '../../infrastructure'
 import { PlaceBidCommand } from './place-bid.command'
 
+const toNumber = (value: string | undefined, fallback: number): number => {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const ANTI_SNIPING_THRESHOLD_MS = toNumber(
+    process.env.AUCTIONS_ANTI_SNIPING_THRESHOLD_MS,
+    30_000,
+)
+const ANTI_SNIPING_EXTENSION_SEC = toNumber(
+    process.env.AUCTIONS_ANTI_SNIPING_EXTENSION_SEC,
+    30,
+)
+
 @CommandHandler(PlaceBidCommand)
 export class PlaceBidService implements ICommandHandler<
     PlaceBidCommand,
@@ -32,16 +46,6 @@ export class PlaceBidService implements ICommandHandler<
 
         if (auction.status !== AuctionStatus.ACTIVE) {
             throw new ArgumentInvalidException('Auction is not active')
-        }
-
-        const endsAt = auction.currentRoundEndsAt
-        if (endsAt) {
-            const msLeft = endsAt.getTime() - Date.now()
-            if (msLeft < 30_000) {
-                auction.extendRound(30)
-                const newEndsAt = auction.currentRoundEndsAt
-                await this._auctionRepository.extendRound(auction.id, newEndsAt)
-            }
         }
 
         const existingBid = await this._biddingRepository.getUserBid(
@@ -87,6 +91,25 @@ export class PlaceBidService implements ICommandHandler<
             newAmount.toFixed(),
             new Date(),
         )
+
+        const endsAt = auction.currentRoundEndsAt
+
+        const shouldCheckExtend =
+            !!endsAt &&
+            endsAt.getTime() - Date.now() < ANTI_SNIPING_THRESHOLD_MS
+
+        if (shouldCheckExtend && auction.itemsPerRound > 0) {
+            const rank = await this._biddingRepository.getUserRank(
+                command.auctionId,
+                command.userId,
+            )
+
+            if (rank !== null && rank < auction.itemsPerRound) {
+                auction.extendRound(ANTI_SNIPING_EXTENSION_SEC)
+                const newEndsAt = auction.currentRoundEndsAt
+                await this._auctionRepository.extendRound(auction.id, newEndsAt)
+            }
+        }
 
         return auction.id
     }

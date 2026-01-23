@@ -13,11 +13,8 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    environment:
-      NODE_ENV: development
-      MONGO_URI: mongodb://mongo:27017/auction_db?replicaSet=rs0
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+    env_file:
+      - ./apps/backend/.env
     depends_on:
       mongo:
         condition: service_healthy
